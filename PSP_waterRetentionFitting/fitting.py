@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 import os
 from PSP_readDataFile import readDataFile
 from PSP_Marquardt import *
@@ -191,7 +192,7 @@ def main():
         waterConductivity = myOutput[:, 1]          # [kg s m-3]
         k_sat = max(waterConductivity)
 
-        # plot conductivity
+        # plot estimated conductivity
         myConductivity = estimateConductivity(waterRetentionCurve, b, k_sat, myWP)
         f2, fig2 = plt.subplots()
         fig2.set_xlabel('Water Potential [J kg$^{-1}$]')
@@ -199,8 +200,15 @@ def main():
         fig2.set_xscale('log')
         fig2.set_yscale('log')
         fig2.plot(myWP, myConductivity, 'k')
+        # save estimated curve on csv
+        outputFilename = "output/conductivity.csv"
+        with open(outputFilename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["WP", "K"])
+            for d1, d2 in zip(myWP, myConductivity):
+                writer.writerow([d1, d2])
 
-        # different colors for each series (maximum 4)
+        # plot observed conductivity with different colors for each series (maximum 4)
         colorList = ['r.', 'g.', 'y.', 'b.']
         colorIndex = 0
         previousWP = 0
@@ -212,7 +220,7 @@ def main():
             previousWP = wp
         plt.savefig('output/waterConductivity.jpg')
 
-        # plot soil pore radius
+        # plot soil pore radius and pdf
         degreeOfSaturation = getDegreeOfSaturation(waterRetentionCurve, b, np.flip(myWC))
         radius = getPoreRadius(np.flip(myWP), 30)
         degreeOfSaturationPdf = firstDerivative5Points(degreeOfSaturation)
