@@ -1,4 +1,5 @@
 # SoilPhysicsWithPython
+![](https://github.com/ftomei/SoilPhysicsWithPython/blob/main/img/book.jpg)
 
 ## Authors
 - Fausto Tomei    <ftomei@arpae.it>
