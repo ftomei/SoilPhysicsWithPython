@@ -8,7 +8,7 @@ from PSP_numericalDerivation import *
 
 def main():
     # read the experimental values
-    myOutput, isFileOk = readDataFile("data/wheat/PAR.txt", 1, '\t', False)
+    myOutput, isFileOk = readDataFile("data/bimodal.txt", 1, '\t', False)
     if not isFileOk:
         print('Wrong file: error reading row nr.', myOutput)
         return False
