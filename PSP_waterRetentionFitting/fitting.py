@@ -2,9 +2,12 @@
 from __future__ import print_function, division
 
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 from PSP_readDataFile import readDataFile
 from PSP_Marquardt import *
 from PSP_numericalDerivation import *
+
 
 def main():
     # read the experimental values
@@ -174,7 +177,9 @@ def main():
     myWC = estimateRetention(waterRetentionCurve, b, myWP)
     plt.plot(myWP, myWC, 'k')
 
-    plt.savefig('waterRetention.jpg')
+    if not os.path.exists('output'):
+        os.makedirs('output')
+    plt.savefig('output/waterRetention.jpg')
 
     if waterRetentionCurve == RESTRICTED_VG_BIMODAL:
         # read water conductivity
@@ -205,8 +210,9 @@ def main():
                 colorIndex += 1
             fig2.plot(waterPotential_k[i], waterConductivity[i], colorList[colorIndex])
             previousWP = wp
+        plt.savefig('output/waterConductivity.jpg')
 
-         # plot soil pore radius
+        # plot soil pore radius
         degreeOfSaturation = getDegreeOfSaturation(waterRetentionCurve, b, np.flip(myWC))
         radius = getPoreRadius(np.flip(myWP), 30)
         degreeOfSaturationPdf = firstDerivative5Points(degreeOfSaturation)
@@ -222,7 +228,7 @@ def main():
         fig4.plot(radius, degreeOfSaturationPdf, 'r')
 
         # fig4.tight_layout()  # otherwise the right y-label is slightly clipped
-        plt.savefig('pdf.jpg')
+        plt.savefig('output/pdf.jpg')
 
     plt.show()
 
