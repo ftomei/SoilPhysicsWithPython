@@ -14,6 +14,7 @@ def main():
         return False
     waterPotential = myOutput[:, 0]
     waterContent = myOutput[:, 1]
+    k_sat = 0.0015   # kg s m-3
     
     # select water retention curve
     print(CAMPBELL, ' Campbell')
@@ -176,34 +177,51 @@ def main():
     plt.savefig('waterRetention.jpg')
 
     if waterRetentionCurve == RESTRICTED_VG_BIMODAL:
-        # leggere file delle conducibilità
-        k_sat = 0.01   # kg s m-3
+        # read water conductivity
+        myOutput, isFileOk = readDataFile("data/bimodal_K.csv", 1, ',', False)
+        if not isFileOk:
+            print('Wrong file: error reading row nr.', myOutput)
+            return False
+        waterPotential_k = myOutput[:, 0]           # [J kg-1]
+        waterConductivity = myOutput[:, 1]          # [kg s m-3]
+        k_sat = max(waterConductivity)
 
         # plot conductivity
         myConductivity = estimateConductivity(waterRetentionCurve, b, k_sat, myWP)
-        fig2, ax2 = plt.subplots()
-        ax2.set_xlabel('Water Potential [J kg$^{-1}$]')
-        ax2.set_ylabel('Hydraulic conductivity [kg s m$^{-3}$]')
-        ax2.set_xscale('log')
-        ax2.set_yscale('log')
-        ax2.plot(myWP, myConductivity, 'k')
+        f2, fig2 = plt.subplots()
+        fig2.set_xlabel('Water Potential [J kg$^{-1}$]')
+        fig2.set_ylabel('Hydraulic conductivity [kg s m$^{-3}$]')
+        fig2.set_xscale('log')
+        fig2.set_yscale('log')
+        fig2.plot(myWP, myConductivity, 'k')
+
+        # different colors for each series (maximum 4)
+        colorList = ['r.', 'g.', 'y.', 'b.']
+        colorIndex = 0
+        previousWP = 0
+        for i in range(len(waterPotential_k)):
+            wp = waterPotential_k[i]
+            if wp < previousWP and colorIndex < 3:
+                colorIndex += 1
+            fig2.plot(waterPotential_k[i], waterConductivity[i], colorList[colorIndex])
+            previousWP = wp
 
          # plot soil pore radius
         degreeOfSaturation = getDegreeOfSaturation(waterRetentionCurve, b, np.flip(myWC))
         radius = getPoreRadius(np.flip(myWP), 30)
         degreeOfSaturationPdf = firstDerivative5Points(degreeOfSaturation)
 
-        fig1, ax1 = plt.subplots()
-        ax1.set_xlabel('radius (m)')
-        ax1.set_xscale('log')
-        ax1.set_ylabel('degree of saturation [-]')
-        ax1.plot(radius, degreeOfSaturation, 'k')
+        f3, fig3 = plt.subplots()
+        fig3.set_xlabel('radius (m)')
+        fig3.set_xscale('log')
+        fig3.set_ylabel('degree of saturation [-]')
+        fig3.plot(radius, degreeOfSaturation, 'k')
 
-        ax2 = ax1.twinx()           # instantiate a second axes that shares the same x-axis
-        ax2.set_ylabel('pdf [-]')   # we already handled the x-label with ax1
-        ax2.plot(radius, degreeOfSaturationPdf, 'r')
+        fig4 = fig3.twinx()           # instantiate a second axes that shares the same x-axis
+        fig4.set_ylabel('pdf [-]')   # we already handled the x-label with ax1
+        fig4.plot(radius, degreeOfSaturationPdf, 'r')
 
-        fig1.tight_layout()  # otherwise the right y-label is slightly clipped
+        # fig4.tight_layout()  # otherwise the right y-label is slightly clipped
         plt.savefig('pdf.jpg')
 
     plt.show()
