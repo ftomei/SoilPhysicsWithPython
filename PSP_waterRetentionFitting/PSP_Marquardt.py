@@ -64,6 +64,8 @@ def estimateConductivity(waterRetentionCurve, v, k_sat, psi):
     waterConductivity = np.zeros(len(psi))
     if waterRetentionCurve == RESTRICTED_VG_BIMODAL:
         VanGenuchtenRestrictedBimodalConductivity(v, k_sat, psi, waterConductivity)
+    elif waterRetentionCurve == RESTRICTED_VG:
+        VanGenuchtenRestrictedConductivity(v, k_sat, psi, waterConductivity)
     '''
     elif waterRetentionCurve == RESTRICTED_IPPISCH_VG:
         #RestrictedIppischVanGenuchten(v, Psi, waterConductivity)
@@ -71,8 +73,7 @@ def estimateConductivity(waterRetentionCurve, v, k_sat, psi):
         #Campbell(v, Psi, waterConductivity)
     elif waterRetentionCurve == VAN_GENUCHTEN:
         #VanGenuchten(v, Psi, waterConductivity)
-    elif waterRetentionCurve == RESTRICTED_VG:
-        #VanGenuchtenRestricted(v, Psi, waterConductivity)
+
     elif waterRetentionCurve == IPPISCH_VG:
         #IppischVanGenuchten(v, Psi, waterConductivity)
     elif waterRetentionCurve == CAMPBELL_IPPISCH_VG:
