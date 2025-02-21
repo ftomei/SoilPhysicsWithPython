@@ -1,4 +1,4 @@
-# SoilPhysicsWithPython
+# Soil Physics with Python
 ![](https://github.com/ftomei/SoilPhysicsWithPython/blob/main/img/book.jpg)
 
 ## Reviews
