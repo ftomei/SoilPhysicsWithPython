@@ -1,14 +1,19 @@
 # PSP_Marquardt.py
 from __future__ import print_function, division
 from math import sqrt
-from PSP_waterRetention import *
 from PSP_waterConductivity import *
+import numpy as np
 
 EPSILON = 0.00001
 MAX_ITERATIONS_NR = 1000
 
 
-def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y):
+# v0: starting parameter values
+# vMin: minimum value for each parameter
+# vMax: maximum value for each parameter
+# x, y: independent and dependent variables
+# w: weight of each value
+def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y, w):
     n = len(v0)
     lambda0 = 0.01
     vFactor = 2.
@@ -19,13 +24,13 @@ def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y):
 
     nrIter = 1
     maxDiff = 1.0
-    sse = norm(waterRetentionCurve, v0, x, y)
+    sse = norm(waterRetentionCurve, v0, x, y, w)
 
     while (maxDiff > EPSILON) and (nrIter < MAX_ITERATIONS_NR):
         diff = LeastSquares(waterRetentionCurve, l, v, vMin, vMax, x, y)
         maxDiff = max(abs(diff))
         v_new = computeNewParameters(v, vMin, vMax, diff, l, vFactor)
-        sse_new = norm(waterRetentionCurve, v_new, x, y)
+        sse_new = norm(waterRetentionCurve, v_new, x, y, w)
 
         if sse_new < sse:
             sse = sse_new
@@ -96,12 +101,13 @@ def computeNewParameters(v, vMin, vMax, diff, l, factor):
     return v_new
 
 
-def norm(waterRetentionCurve, v, x, y):
+def norm(waterRetentionCurve, v, x, y, w):
     yEst = estimateRetention(waterRetentionCurve, v, x)
     currentNorm = 0
     for i in range(len(x)):
+        weight = w[i] * len(x)
         dy = y[i] - yEst[i]
-        currentNorm += (dy * dy)
+        currentNorm += (dy * dy) * weight
     return currentNorm
 
 

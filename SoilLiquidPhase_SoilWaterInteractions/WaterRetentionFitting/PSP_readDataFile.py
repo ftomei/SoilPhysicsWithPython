@@ -13,8 +13,11 @@ def scanDataFile(file, delimiter):
             nrCols = len(row)
         else:
             if len(row) != nrCols:
-                # wrong file: nr of fields not coherent
-                return nrRows, nrCols, False
+                if len(row) == nrCols+1:
+                    nrCols = len(row)
+                else:
+                    # wrong file: nr of fields not coherent
+                    return nrRows, nrCols, False
         nrRows += 1
     return nrRows, nrCols, True
 
