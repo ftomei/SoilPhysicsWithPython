@@ -10,6 +10,44 @@ from PSP_Marquardt import *
 from PSP_numericalDerivation import *
 
 
+def assignWeights(obsWaterPotential, obsWaterContent, userWeight):
+    nrObsValues = len(userWeight)
+    waterPotential = []
+    waterContent = []
+
+    # check user weights
+    sumUserWeight = 0
+    nrNoWeightData = 0
+    for i in range(nrObsValues):
+        if userWeight[i] > 0:
+            sumUserWeight += userWeight[i]
+        else:
+            nrNoWeightData += 1
+    if sumUserWeight > 1.0:
+        print('Wrong weight sum: ', sumUserWeight)
+        return False, waterPotential, waterContent
+
+    # set weights
+    weight = np.zeros(nrObsValues)
+    minWeight = 1
+    for i in range(nrObsValues):
+        if userWeight[i] != 0:
+            weight[i] = userWeight[i]
+        else:
+            weight[i] = (1.0 - sumUserWeight) / nrNoWeightData
+        if weight[i] < minWeight:
+            minWeight = weight[i]
+
+    nrNewData = int(1.0 / minWeight)
+    for i in range(nrObsValues):
+        nrData = round(weight[i] * nrNewData)
+        for n in range(nrData):
+            waterPotential.append(obsWaterPotential[i])
+            waterContent.append(obsWaterContent[i])
+
+    return True, waterPotential, waterContent
+
+
 def main():
     # read the experimental values
     myOutput, isFileOk = readDataFile("data/bimodal.txt", 1, '\t', False)
@@ -17,34 +55,20 @@ def main():
         nrWrongRow = myOutput + 1
         print('Wrong file: error reading row nr.', nrWrongRow)
         return False
-    waterPotential = myOutput[:, 0]
-    waterContent = myOutput[:, 1]
 
-    nrValues = len(waterContent)
-    userWeight = np.zeros(nrValues)
-    if len(myOutput[0]) >= 3:
-        userWeight = myOutput[:, 2]
+    obsWaterPotential = myOutput[:, 0]
+    obsWaterContent = myOutput[:, 1]
 
     # check user weights
-    sumUserWeight = 0
-    nrNoWeightData = 0
-    for i in range(len(userWeight)):
-        if userWeight[i] > 0:
-            sumUserWeight += userWeight[i]
-        else:
-            nrNoWeightData += 1
-    if sumUserWeight > 1.0:
-        print('Wrong weight sum: ', sumUserWeight)
-        return False
+    if len(myOutput[0]) < 3:
+        waterPotential = obsWaterPotential
+        waterContent = obsWaterContent
+    else:
+        userWeight = myOutput[:, 2]
+        isOk, waterPotential, waterContent = assignWeights(obsWaterPotential, obsWaterContent, userWeight)
+        if not isOk:
+            return False
 
-    # set weights
-    weight = np.zeros(nrValues)
-    for i in range(nrValues):
-        if userWeight[i] != 0:
-            weight[i] = userWeight[i]
-        else:
-            weight[i] = (1.0 - sumUserWeight) / nrNoWeightData
-    
     # select water retention curve
     print(CAMPBELL, ' Campbell')
     print(VAN_GENUCHTEN, ' van Genuchten')
@@ -63,8 +87,8 @@ def main():
     # initialize parameters
     thetaSatList = []
     previousWC = 0.0
-    for i in range(len(waterContent)):
-        wc = waterContent[i]
+    for i in range(len(obsWaterContent)):
+        wc = obsWaterContent[i]
         if wc > previousWC:
             thetaSatList.append(wc)
         previousWC = wc
@@ -131,7 +155,7 @@ def main():
     wiltingPoint[0] = 1500          # [J kg-1]
 
     print("\nFitting")
-    b = Marquardt(waterRetentionCurve, b0, bmin, bmax, waterPotential, waterContent, weight)
+    b = Marquardt(waterRetentionCurve, b0, bmin, bmax, waterPotential, waterContent)
 
     print("\nthetaS = ", b[0])
     if waterRetentionCurve == CAMPBELL:
@@ -184,11 +208,11 @@ def main():
     colorList = ['r.', 'g.', 'y.', 'b.']
     colorIndex = 0
     previousWP = 0
-    for i in range(len(waterPotential)):
-        wp = waterPotential[i]
+    for i in range(len(obsWaterPotential)):
+        wp = obsWaterPotential[i]
         if wp < previousWP and colorIndex < 3:
             colorIndex += 1
-        plt.plot(waterPotential[i], waterContent[i], colorList[colorIndex])
+        plt.plot(obsWaterPotential[i], obsWaterContent[i], colorList[colorIndex])
         previousWP = wp
 
     plt.xscale('log')

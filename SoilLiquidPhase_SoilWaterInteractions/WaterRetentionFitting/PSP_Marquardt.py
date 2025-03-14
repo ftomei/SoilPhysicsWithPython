@@ -12,8 +12,7 @@ MAX_ITERATIONS_NR = 1000
 # vMin: minimum value for each parameter
 # vMax: maximum value for each parameter
 # x, y: independent and dependent variables
-# w: weight of each value
-def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y, w):
+def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y):
     n = len(v0)
     lambda0 = 0.01
     vFactor = 2.
@@ -24,13 +23,13 @@ def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y, w):
 
     nrIter = 1
     maxDiff = 1.0
-    sse = norm(waterRetentionCurve, v0, x, y, w)
+    sse = norm(waterRetentionCurve, v0, x, y)
 
     while (maxDiff > EPSILON) and (nrIter < MAX_ITERATIONS_NR):
         diff = LeastSquares(waterRetentionCurve, l, v, vMin, vMax, x, y)
         maxDiff = max(abs(diff))
         v_new = computeNewParameters(v, vMin, vMax, diff, l, vFactor)
-        sse_new = norm(waterRetentionCurve, v_new, x, y, w)
+        sse_new = norm(waterRetentionCurve, v_new, x, y)
 
         if sse_new < sse:
             sse = sse_new
@@ -101,13 +100,12 @@ def computeNewParameters(v, vMin, vMax, diff, l, factor):
     return v_new
 
 
-def norm(waterRetentionCurve, v, x, y, w):
+def norm(waterRetentionCurve, v, x, y):
     yEst = estimateRetention(waterRetentionCurve, v, x)
     currentNorm = 0
     for i in range(len(x)):
-        weight = w[i] * len(x)
         dy = y[i] - yEst[i]
-        currentNorm += (dy * dy) * weight
+        currentNorm += (dy * dy)
     return currentNorm
 
 
