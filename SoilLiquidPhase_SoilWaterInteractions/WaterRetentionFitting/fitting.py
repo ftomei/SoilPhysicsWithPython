@@ -50,7 +50,7 @@ def assignWeights(obsWaterPotential, obsWaterContent, userWeight):
 
 def main():
     # read the experimental values
-    myOutput, isFileOk = readDataFile("data/bimodal.txt", 1, '\t', False)
+    myOutput, isFileOk = readDataFile("data/bimodal_weight.txt", 1, '\t', False)
     if not isFileOk:
         nrWrongRow = myOutput + 1
         print('Wrong file: error reading row nr.', nrWrongRow)

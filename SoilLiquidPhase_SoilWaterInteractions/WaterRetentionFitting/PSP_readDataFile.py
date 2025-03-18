@@ -9,15 +9,7 @@ def scanDataFile(file, delimiter):
     nrRows = 0
     nrCols = 0
     for row in reader:
-        if nrRows == 0:
-            nrCols = len(row)
-        else:
-            if len(row) != nrCols:
-                if len(row) == nrCols+1:
-                    nrCols = len(row)
-                else:
-                    # wrong file: nr of fields not coherent
-                    return nrRows, nrCols, False
+        nrCols = max(nrCols, len(row))
         nrRows += 1
     return nrRows, nrCols, True
 
