@@ -59,7 +59,7 @@ def main():
     obsWaterPotential = myOutput[:, 0]
     obsWaterContent = myOutput[:, 1]
 
-    # check the weights assigned by users
+    # use the weights assigned by users
     if len(myOutput[0]) < 3:
         waterPotential = obsWaterPotential
         waterContent = obsWaterContent
