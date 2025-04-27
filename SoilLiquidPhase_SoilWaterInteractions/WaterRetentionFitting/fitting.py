@@ -49,7 +49,7 @@ def assignWeights(obsWaterPotential, obsWaterContent, userWeight):
 
 
 def main():
-    # read the experimental values
+    # reads the experimental values
     myOutput, isFileOk = readDataFile("data/bimodal_weight.txt", 1, '\t', False)
     if not isFileOk:
         nrWrongRow = myOutput + 1
@@ -59,7 +59,7 @@ def main():
     obsWaterPotential = myOutput[:, 0]
     obsWaterContent = myOutput[:, 1]
 
-    # check user weights
+    # check the weights assigned by users
     if len(myOutput[0]) < 3:
         waterPotential = obsWaterPotential
         waterContent = obsWaterContent
@@ -69,7 +69,7 @@ def main():
         if not isOk:
             return False
 
-    # select water retention curve
+    # select the water retention curve
     print(CAMPBELL, ' Campbell')
     print(VAN_GENUCHTEN, ' van Genuchten')
     print(RESTRICTED_VG, ' van Genuchten with m = 1-1/n restriction')
@@ -80,11 +80,11 @@ def main():
 
     waterRetentionCurve = 0
     while (waterRetentionCurve < CAMPBELL) or (waterRetentionCurve > LAST_MODEL_NR):
-        waterRetentionCurve = float(input("Choose model type: "))
+        waterRetentionCurve = float(input("Choose water retention curve: "))
         if (waterRetentionCurve < CAMPBELL) or (waterRetentionCurve > LAST_MODEL_NR):
             print("wrong choice.")
 
-    # initialize parameters
+    # initialize ThetaS and ThetaR from observed data
     thetaSatList = []
     previousWC = 0.0
     for i in range(len(obsWaterContent)):
@@ -97,14 +97,14 @@ def main():
     thetaS = sum(thetaSatList) / len(thetaSatList)
     thetaR = min(waterContent)
 
-    # initial values
+    # Initial values of the water retention curve parameters
     air_entry = 1.0
     Campbell_b = 4.0
     VG_alpha = 1 / air_entry
     VG_n = 1.2
     VG_m = 1. - 1./VG_n
 
-    # bimodal initial parameters
+    # Initial values of bimodal parameters
     VG_alpha2 = VG_alpha * 0.5
     VG_n2 = VG_n * 0.5
     w = 0.5
@@ -141,7 +141,7 @@ def main():
         print("wrong choice.")
         return False
 
-    # assign field capacity and wilting point
+    # assigns the field capacity and the wilting point
     isFieldCapacityCorrect = False
     fieldCapacity = np.zeros(1)     # [J kg-1]
     while not isFieldCapacityCorrect:
@@ -154,7 +154,7 @@ def main():
     wiltingPoint = np.zeros(1)
     wiltingPoint[0] = 1500          # [J kg-1]
 
-    print("\nFitting")
+    print("\nFitting...")
     b = Marquardt(waterRetentionCurve, b0, bmin, bmax, waterPotential, waterContent)
 
     print("\nthetaS = ", b[0])
@@ -204,7 +204,7 @@ def main():
 
     plt.figure(figsize=(8, 6))
 
-    # different colors for each series (maximum 4)
+    # plot the observed water potential with different colors for each series (maximum 4)
     colorList = ['r.', 'g.', 'y.', 'b.']
     colorIndex = 0
     previousWP = 0
@@ -222,8 +222,8 @@ def main():
     plt.tick_params(axis='both', which='major', labelsize=14, pad=6)
     plt.tick_params(axis='both', which='minor', labelsize=14, pad=6)
 
-    # plot water retention curve
-    myWP = np.logspace(-3, 8, 500)
+    # plot the fitted water retention curve
+    myWP = np.logspace(-3, 8, 200)
     myWC = estimateRetention(waterRetentionCurve, b, myWP)
     plt.plot(myWP, myWC, 'k')
 
@@ -241,7 +241,7 @@ def main():
         waterConductivity = myInput[:, 1]          # [kg s m-3]
         k_sat = max(waterConductivity)
 
-        # plot estimated conductivity
+        # plot the estimated water conductivity
         myConductivity = estimateConductivity(waterRetentionCurve, b, k_sat, myWP)
         f2, fig2 = plt.subplots()
         fig2.set_xlabel('Water Potential [J kg$^{-1}$]')
@@ -250,16 +250,16 @@ def main():
         fig2.set_yscale('log')
         fig2.plot(myWP, myConductivity, 'k')
 
-        # save estimated curve on csv
+        # save the estimated data to csv file
         outputFilename = "output/fitting.csv"
         with open(outputFilename, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["water potential", "water content", "water conductivity"])
             for c1, c2, c3 in zip(myWP, myWC, myConductivity):
                 writer.writerow([c1, c2, c3])
-        print('\nFitting output file:', outputFilename, '\n')
+        print('\nOutput file:', outputFilename, '\n')
 
-        # plot observed conductivity with different colors for each series (maximum 4)
+        # plot the observed conductivity with different colors for each series (maximum 4)
         colorList = ['r.', 'g.', 'y.', 'b.']
         colorIndex = 0
         previousWP = 0
@@ -289,7 +289,7 @@ def main():
 
                 if not isFirst:
                     if currentSign == -1 and previousSign == 1:
-                        print("Relative maximum od Pdf: ", radius[i])
+                        print("Relative maximum of Pdf: ", radius[i])
                 else:
                     isFirst = False
                 previousSign = currentSign
