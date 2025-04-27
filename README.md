@@ -1,4 +1,8 @@
-# SoilPhysicsWithPython
+# Soil Physics with Python
+Transport in the Soil-Plant-Atmosphere system.
+
+Updated code from the book
+
 ![](https://github.com/ftomei/SoilPhysicsWithPython/blob/main/img/book.jpg)
 
 ## Reviews

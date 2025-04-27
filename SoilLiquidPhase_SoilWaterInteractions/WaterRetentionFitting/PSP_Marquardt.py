@@ -1,13 +1,17 @@
 # PSP_Marquardt.py
 from __future__ import print_function, division
 from math import sqrt
-from PSP_waterRetention import *
 from PSP_waterConductivity import *
+import numpy as np
 
 EPSILON = 0.00001
 MAX_ITERATIONS_NR = 1000
 
 
+# v0: starting parameter values
+# vMin: minimum value for each parameter
+# vMax: maximum value for each parameter
+# x, y: independent and dependent variables
 def Marquardt(waterRetentionCurve, v0, vMin, vMax, x, y):
     n = len(v0)
     lambda0 = 0.01

@@ -10,15 +10,65 @@ from PSP_Marquardt import *
 from PSP_numericalDerivation import *
 
 
+def assignWeights(obsWaterPotential, obsWaterContent, userWeight):
+    nrObsValues = len(userWeight)
+    waterPotential = []
+    waterContent = []
+
+    # check user weights
+    sumUserWeight = 0
+    nrNoWeightData = 0
+    for i in range(nrObsValues):
+        if userWeight[i] > 0:
+            sumUserWeight += userWeight[i]
+        else:
+            nrNoWeightData += 1
+    if sumUserWeight > 1.0:
+        print('Wrong weight sum: ', sumUserWeight)
+        return False, waterPotential, waterContent
+
+    # set weights
+    weight = np.zeros(nrObsValues)
+    minWeight = 1
+    for i in range(nrObsValues):
+        if userWeight[i] != 0:
+            weight[i] = userWeight[i]
+        else:
+            weight[i] = (1.0 - sumUserWeight) / nrNoWeightData
+        if weight[i] < minWeight:
+            minWeight = weight[i]
+
+    nrNewData = int(1.0 / minWeight)
+    for i in range(nrObsValues):
+        nrData = round(weight[i] * nrNewData)
+        for n in range(nrData):
+            waterPotential.append(obsWaterPotential[i])
+            waterContent.append(obsWaterContent[i])
+
+    return True, waterPotential, waterContent
+
+
 def main():
     # read the experimental values
-    myOutput, isFileOk = readDataFile("data/bimodal.txt", 1, '\t', False)
+    myOutput, isFileOk = readDataFile("data/bimodal_weight.txt", 1, '\t', False)
     if not isFileOk:
-        print('Wrong file: error reading row nr.', myOutput)
+        nrWrongRow = myOutput + 1
+        print('Wrong file: error reading row nr.', nrWrongRow)
         return False
-    waterPotential = myOutput[:, 0]
-    waterContent = myOutput[:, 1]
-    
+
+    obsWaterPotential = myOutput[:, 0]
+    obsWaterContent = myOutput[:, 1]
+
+    # check user weights
+    if len(myOutput[0]) < 3:
+        waterPotential = obsWaterPotential
+        waterContent = obsWaterContent
+    else:
+        userWeight = myOutput[:, 2]
+        isOk, waterPotential, waterContent = assignWeights(obsWaterPotential, obsWaterContent, userWeight)
+        if not isOk:
+            return False
+
     # select water retention curve
     print(CAMPBELL, ' Campbell')
     print(VAN_GENUCHTEN, ' van Genuchten')
@@ -37,8 +87,8 @@ def main():
     # initialize parameters
     thetaSatList = []
     previousWC = 0.0
-    for i in range(len(waterContent)):
-        wc = waterContent[i]
+    for i in range(len(obsWaterContent)):
+        wc = obsWaterContent[i]
         if wc > previousWC:
             thetaSatList.append(wc)
         previousWC = wc
@@ -50,13 +100,13 @@ def main():
     # initial values
     air_entry = 1.0
     Campbell_b = 4.0
-    VG_alpha = 1/air_entry
+    VG_alpha = 1 / air_entry
     VG_n = 1.2
     VG_m = 1. - 1./VG_n
 
     # bimodal initial parameters
-    VG_alpha2 = VG_alpha * 0.9
-    VG_n2 = VG_n * 1.1
+    VG_alpha2 = VG_alpha * 0.5
+    VG_n2 = VG_n * 0.5
     w = 0.5
       
     if waterRetentionCurve == CAMPBELL:
@@ -73,8 +123,8 @@ def main():
         bmax = np.array([1., thetaR, 10., 10.], float)
     elif waterRetentionCurve == RESTRICTED_VG_BIMODAL:
         b0 = np.array([thetaS, thetaR, VG_alpha, VG_alpha2, VG_n, VG_n2, w], float)
-        bmin = np.array([minThetaS, 0., 0.001, 0.001, 1., 1., 0.], float)
-        bmax = np.array([1., thetaR, 100., 100., 10., 10., 1.], float)
+        bmin = np.array([minThetaS, 0., 0.0001, 0.0001, 1., 1., 0.], float)
+        bmax = np.array([1., thetaR, 100., 100., 20., 20., 1.], float)
     elif waterRetentionCurve == IPPISCH_VG:
         b0 = np.array([thetaS, thetaR, air_entry, VG_alpha, VG_n, VG_m], float)
         bmin = np.array([minThetaS, 0., 0.1, 0.001, 0.01, 0.01], float)
@@ -158,11 +208,11 @@ def main():
     colorList = ['r.', 'g.', 'y.', 'b.']
     colorIndex = 0
     previousWP = 0
-    for i in range(len(waterPotential)):
-        wp = waterPotential[i]
+    for i in range(len(obsWaterPotential)):
+        wp = obsWaterPotential[i]
         if wp < previousWP and colorIndex < 3:
             colorIndex += 1
-        plt.plot(waterPotential[i], waterContent[i], colorList[colorIndex])
+        plt.plot(obsWaterPotential[i], obsWaterContent[i], colorList[colorIndex])
         previousWP = wp
 
     plt.xscale('log')
