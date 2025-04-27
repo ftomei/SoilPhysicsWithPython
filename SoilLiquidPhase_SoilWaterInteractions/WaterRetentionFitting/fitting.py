@@ -183,12 +183,12 @@ def main():
 
     if waterRetentionCurve == RESTRICTED_VG_BIMODAL:
         # read water conductivity
-        myOutput, isFileOk = readDataFile("data/bimodal_K.csv", 1, ',', False)
+        myInput, isFileOk = readDataFile("data/bimodal_K.csv", 1, ',', False)
         if not isFileOk:
-            print('Wrong file: error reading row nr.', myOutput)
+            print('Wrong file: error reading row nr.', myInput)
             return False
-        waterPotential_k = myOutput[:, 0]           # [J kg-1]
-        waterConductivity = myOutput[:, 1]          # [kg s m-3]
+        waterPotential_k = myInput[:, 0]           # [J kg-1]
+        waterConductivity = myInput[:, 1]          # [kg s m-3]
         k_sat = max(waterConductivity)
 
         # plot estimated conductivity
@@ -201,12 +201,13 @@ def main():
         fig2.plot(myWP, myConductivity, 'k')
 
         # save estimated curve on csv
-        outputFilename = "output/conductivity.csv"
+        outputFilename = "output/fitting.csv"
         with open(outputFilename, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["WP", "K"])
-            for d1, d2 in zip(myWP, myConductivity):
-                writer.writerow([d1, d2])
+            writer.writerow(["water potential", "water content", "water conductivity"])
+            for c1, c2, c3 in zip(myWP, myWC, myConductivity):
+                writer.writerow([c1, c2, c3])
+        print('\nFitting output file:', outputFilename, '\n')
 
         # plot observed conductivity with different colors for each series (maximum 4)
         colorList = ['r.', 'g.', 'y.', 'b.']
