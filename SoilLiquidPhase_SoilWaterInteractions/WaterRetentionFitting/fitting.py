@@ -50,7 +50,9 @@ def assignWeights(obsWaterPotential, obsWaterContent, userWeight):
 
 def main():
     # reads the experimental values
-    myOutput, isFileOk = readDataFile("data/bimodal_weight.txt", 1, '\t', False)
+    testName = "BOLOGNA"
+    fileName = "data/" + testName + ".txt"
+    myOutput, isFileOk = readDataFile(fileName, 1, '\t', False)
     if not isFileOk:
         nrWrongRow = myOutput + 1
         print('Wrong file: error reading row nr.', nrWrongRow)
@@ -229,7 +231,8 @@ def main():
 
     if not os.path.exists('output'):
         os.makedirs('output')
-    plt.savefig('output/waterRetention.jpg')
+    outputFilename = "output/" + testName + "_curve.jpg"
+    plt.savefig(outputFilename)
 
     if waterRetentionCurve == RESTRICTED_VG_BIMODAL:
         # read water conductivity
@@ -251,7 +254,7 @@ def main():
         fig2.plot(myWP, myConductivity, 'k')
 
         # save the estimated data to csv file
-        outputFilename = "output/fitting.csv"
+        outputFilename = "output/" + testName + ".csv"
         with open(outputFilename, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["water potential", "water content", "water conductivity"])
@@ -305,7 +308,8 @@ def main():
         fig4.plot(radius, degreeOfSaturationPdf, 'r')
 
         f3.tight_layout()               # otherwise, the right y-label is slightly clipped
-        plt.savefig('output/pdf.jpg')
+        outputFilename = "output/" + testName + "_pdf.jpg"
+        plt.savefig(outputFilename)
 
     plt.show()
 
